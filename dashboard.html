@@ -13,6 +13,9 @@
 </head>
 <body>
     <div class="app-container">
+        <!-- Overlay -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+        
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -34,7 +37,8 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
-                <div class="header-title">
+                <div class="header-title" style="display: flex; align-items: center; gap: 15px;">
+                    <button id="mobile-menu-btn" class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
                     <h1 id="page-title">Admin Dashboard</h1>
                 </div>
                 <div class="header-clock" id="live-clock-card">

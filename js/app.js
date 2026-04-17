@@ -106,8 +106,33 @@ navItems.forEach(item => {
         if (sectionTitles[targetId]) {
             pageTitleEl.textContent = sectionTitles[targetId];
         }
+        
+        // Close sidebar on mobile after clicking
+        if (window.innerWidth <= 992 && sidebar && sidebarOverlay && sidebar.classList.contains('open')) {
+            toggleSidebar();
+        }
     });
 });
+
+// Mobile Sidebar Logic
+const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+const sidebar = document.querySelector('.sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+function toggleSidebar() {
+    if (sidebar && sidebarOverlay) {
+        sidebar.classList.toggle('open');
+        sidebarOverlay.classList.toggle('show');
+    }
+}
+
+if (mobileMenuBtn) {
+    mobileMenuBtn.addEventListener('click', toggleSidebar);
+}
+
+if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', toggleSidebar);
+}
 
 // --- FIREBASE LOGIC & APP STATE ---
 const auth = firebase.auth();

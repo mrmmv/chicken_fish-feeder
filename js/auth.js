@@ -155,3 +155,22 @@ auth.onAuthStateChanged((user) => {
         window.location.href = 'dashboard.html';
     }
 });
+
+// Toggle Password Visibility
+function setupPasswordToggle(toggleIconId, passwordInputId) {
+    const toggleIcon = document.getElementById(toggleIconId);
+    const passwordInput = document.getElementById(passwordInputId);
+    
+    if (toggleIcon && passwordInput) {
+        toggleIcon.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            // Toggle icon
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+    }
+}
+
+setupPasswordToggle('toggle-login-password', 'login-password');
+setupPasswordToggle('toggle-signup-password', 'signup-password');

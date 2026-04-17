@@ -6,6 +6,8 @@
     <title>Fin & Feather Feeding System - Log In or Sign Up</title>
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- CSS -->
     <link rel="stylesheet" href="css/login.css">
 </head>
@@ -23,7 +25,10 @@
             <div class="auth-box" id="login-box">
                 <form id="login-form">
                     <input type="email" id="login-email" placeholder="Email address" required>
-                    <input type="password" id="login-password" placeholder="Password" required>
+                    <div class="password-container">
+                        <input type="password" id="login-password" placeholder="Password" required>
+                        <i class="fas fa-eye-slash toggle-password" id="toggle-login-password"></i>
+                    </div>
                     <button type="submit" class="btn-login">Log In</button>
                 </form>
                 <div class="forgot-password">
@@ -45,7 +50,10 @@
                 <form id="signup-form">
                     <input type="text" id="signup-device-id" placeholder="Device ID (from your Hardware Guide)" required>
                     <input type="email" id="signup-email" placeholder="Email address" required>
-                    <input type="password" id="signup-password" placeholder="New password" required>
+                    <div class="password-container">
+                        <input type="password" id="signup-password" placeholder="New password" required>
+                        <i class="fas fa-eye-slash toggle-password" id="toggle-signup-password"></i>
+                    </div>
                     <p class="terms-text">By clicking Sign Up, you agree to our Terms and Data Policy. The specified Device ID will be permanently tied to your account.</p>
                     <button type="submit" class="btn-signup btn-wide">Sign Up</button>
                     <div class="back-to-login">

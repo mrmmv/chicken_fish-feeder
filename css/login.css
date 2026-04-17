@@ -84,6 +84,33 @@ body {
     box-shadow: 0 0 0 2px #e7f3ff;
 }
 
+.password-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.password-container input[type="password"],
+.password-container input[type="text"] {
+    width: 100%;
+    margin-bottom: 0;
+    padding-right: 40px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #606770;
+    font-size: 16px;
+}
+
+.toggle-password:hover {
+    color: #1c1e21;
+}
+
 .btn-login {
     background-color: #1877f2;
     color: #ffffff;
