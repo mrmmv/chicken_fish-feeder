@@ -53,10 +53,8 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
 
     auth.signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
-            // Signed in
             console.log("Logged in successfully:", userCredential.user);
-            // Redirect to dashboard
-            window.location.href = 'index.html'; // Assuming index.html is the UI dashboard
+            window.location.href = 'dashboard.html'; 
         })
         .catch((error) => {
             alert("Error: " + error.message);
@@ -64,22 +62,41 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
 });
 
 // 2. Sign Up
-document.getElementById('signup-form').addEventListener('submit', (e) => {
+document.getElementById('signup-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
+    const deviceId = document.getElementById('signup-device-id').value.trim();
 
-    auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-            // Signed up
-            console.log("Signed up successfully:", userCredential.user);
-            alert("Account created successfully!");
-            // Redirect to dashboard
-            window.location.href = 'index.html'; 
-        })
-        .catch((error) => {
-            alert("Error: " + error.message);
-        });
+    if(!deviceId) {
+        alert("Please enter a valid Device ID.");
+        return;
+    }
+
+    try {
+        // Check if device is already registered
+        const deviceRef = firebase.database().ref('devices/' + deviceId);
+        const snapshot = await deviceRef.once('value');
+        if(snapshot.exists() && snapshot.child('owner').exists()) {
+            alert("This Device ID is already registered to another user.");
+            return;
+        }
+
+        // Proceed to create user
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const uid = userCredential.user.uid;
+
+        // Register device to user
+        await deviceRef.child('owner').set(uid);
+        // Link user to device
+        await firebase.database().ref('users/' + uid).set({ deviceId: deviceId });
+
+        alert("Account created and Device registered successfully!");
+        window.location.href = 'dashboard.html'; 
+
+    } catch (error) {
+        alert("Error: " + error.message);
+    }
 });
 
 // 3. Forgot Password / Reset
@@ -100,11 +117,8 @@ document.getElementById('forgot-form').addEventListener('submit', (e) => {
 
 // Check if user is already logged in
 auth.onAuthStateChanged((user) => {
-    if (user) {
+    if (user && window.location.pathname.includes('index.html')) {
         // User is signed in, automatically redirect to dashboard
-        // window.location.href = 'index.html';
-        
-        // Uncomment the line above to enforce automatic redirection.
-        // Left commented during testing so you can see the login page.
+        window.location.href = 'dashboard.html';
     }
 });

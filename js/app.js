@@ -95,48 +95,98 @@ navItems.forEach(item => {
     });
 });
 
-// --- FIREBASE LOGIC (with fallback mock handling) ---
+// --- FIREBASE LOGIC & APP STATE ---
+const auth = firebase.auth();
+let userDeviceId = null;
+let feederRef = null;
 
-const feederRef = database.ref('feeder');
-
-// Listen for status changes
-feederRef.child('status').on('value', (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-        updateStatusCards(data);
-    } else {
-        // Mock data initialization if empty
-        initMockData();
+// Authenticate and bind user's device
+auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+        window.location.href = 'index.html'; // Redirect to login if not authenticated
+        return;
     }
-}, (error) => {
-    console.error("Firebase read failed: ", error);
+    
+    // Fetch Device ID associated with User
+    const userRef = firebase.database().ref('users/' + user.uid);
+    const snap = await userRef.once('value');
+    if (snap.exists() && snap.val().deviceId) {
+        userDeviceId = snap.val().deviceId;
+        feederRef = firebase.database().ref('devices/' + userDeviceId);
+        
+        // Start listening to this device's node
+        initializeRealtimeListeners();
+    } else {
+        alert("No device linked to this account!");
+    }
 });
 
-// Listen for schedule
-feederRef.child('schedule').on('value', (snapshot) => {
-    const data = snapshot.val();
-    renderSchedule(data);
-});
+function initializeRealtimeListeners() {
+    // Status
+    feederRef.child('status').on('value', (snapshot) => {
+        const data = snapshot.val() || { feedLevel: 0, lastFeedingTime: '--', nextFeedingTime: '--' };
+        updateStatusCards(data);
+    });
 
-// Listen for logs
-feederRef.child('logs').limitToLast(5).on('value', (snapshot) => {
-    const data = snapshot.val();
-    renderLogs(data);
-});
+    // Schedule (Dashboard list)
+    feederRef.child('schedule').on('value', (snapshot) => {
+        const data = snapshot.val();
+        renderSchedule(data);
+    });
+
+    // Logs (grouped by day)
+    feederRef.child('logs').orderByChild('timestamp').limitToLast(50).on('value', (snapshot) => {
+        const data = snapshot.val();
+        renderLogsGrouped(data);
+    });
+}
 
 // Feed Now Button
 btnFeedNow.addEventListener('click', () => {
-    // Send a command to Firebase that the hardware will listen to
-    feederRef.child('control').update({
-        dispense_now: true,
-        trigger_time: Date.now()
+    if (!feederRef) return;
+    feederRef.child('control').update({ dispense_now: true, trigger_time: Date.now() });
+    alert('Dispense command sent to device!');
+});
+
+// Logout Button
+document.getElementById('btn-logout').addEventListener('click', () => {
+    auth.signOut().then(() => {
+        window.location.href = 'index.html';
     });
-    alert('Dispense command sent!');
+});
+
+// Handle New Schedule Submission
+document.getElementById('schedule-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if(!feederRef) return alert("Device not connected yet.");
+
+    const checkboxes = document.querySelectorAll('input[name="days"]:checked');
+    const time = document.getElementById('schedule-time').value;
+    const amount = document.getElementById('schedule-amount').value;
+
+    if(checkboxes.length === 0) return alert("Please select at least one day.");
+    
+    // Format time to 12-hour AM/PM for display
+    let [h, m] = time.split(':');
+    let ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    const formattedTime = `${h}:${m} ${ampm}`;
+
+    checkboxes.forEach(cb => {
+        feederRef.child('schedule').push({
+            day: cb.value,
+            time: formattedTime,
+            rawTime: time,
+            amount: parseInt(amount)
+        });
+    });
+
+    alert("Schedule added!");
+    e.target.reset(); // Reset form
 });
 
 // Helper Functions
 function updateStatusCards(data) {
-    // Feed Level
     const level = data.feedLevel || 0;
     feedPercentageEl.textContent = level;
     feedProgressBar.style.width = `${level}%`;
@@ -151,87 +201,81 @@ function updateStatusCards(data) {
         feedProgressBar.classList.remove('low');
     }
     
-    // Last / Next Feeding
     lastFeedingTimeEl.textContent = data.lastFeedingTime || '--:-- --';
     lastFeedingAmountEl.textContent = data.lastFeedingAmount || '--';
     nextFeedingTimeEl.textContent = data.nextFeedingTime || '--:-- --';
-    
-    // Countdown calculation (simplified for mock implementation)
-    // In a real app, you'd match server time to the next scheduled time natively
     nextFeedingCountdownEl.textContent = data.nextFeedingCountdown || '--h --m';
 }
 
 function renderSchedule(data) {
     scheduleListEl.innerHTML = '';
+    const fullListEl = document.getElementById('full-schedule-list');
+    if(fullListEl) fullListEl.innerHTML = '';
+
     if (!data) {
-        scheduleListEl.innerHTML = '<li>No schedules found.</li>';
+        const emptyMsg = '<li>No schedules found.</li>';
+        scheduleListEl.innerHTML = emptyMsg;
+        if(fullListEl) fullListEl.innerHTML = emptyMsg;
         return;
     }
     
-    // Assuming data is an object of schedules
     for (const key in data) {
         const item = data[key];
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <i class="far fa-calendar-check schedule-icon"></i>
-            <span class="schedule-day">${item.day}</span>
-            <span class="schedule-time">${item.time}</span>
+        const li = `<li style="display:flex; align-items:center; border-bottom:1px solid #eee; padding:10px 0;">
+            <i class="far fa-calendar-check schedule-icon" style="color:#F39C12; margin-right:15px;"></i>
+            <span class="schedule-day" style="font-weight:bold; width:60px;">${item.day}</span>
+            <span class="schedule-time" style="flex:1;">${item.time}</span>
             <span class="schedule-amount">${item.amount} g</span>
-        `;
-        scheduleListEl.appendChild(li);
+        </li>`;
+        scheduleListEl.innerHTML += li;
+        if(fullListEl) fullListEl.innerHTML += li;
     }
 }
 
-function renderLogs(data) {
+function renderLogsGrouped(data) {
     logsListEl.innerHTML = '';
+    const fullLogsEl = document.getElementById('full-logs-list');
+    if(fullLogsEl) fullLogsEl.innerHTML = '';
+
     if (!data) {
         logsListEl.innerHTML = '<li>No recent logs.</li>';
+        if(fullLogsEl) fullLogsEl.innerHTML = '<li>No recent logs.</li>';
         return;
     }
-    
-    // Convert object to array and reverse to show newest first
-    const logsArray = Object.keys(data).map(key => data[key]).reverse();
-    
-    logsArray.forEach(log => {
-        const li = document.createElement('li');
-        let iconClass = 'fas fa-check-circle completed';
-        if (log.type === 'warning') iconClass = 'fas fa-exclamation-triangle warning';
-        if (log.type === 'error') iconClass = 'fas fa-times-circle error';
-        
-        li.innerHTML = `
-            <i class="${iconClass} log-icon"></i>
-            <span class="log-time">${log.time}</span>
-            <span class="log-message">${log.message}</span>
-        `;
-        logsListEl.appendChild(li);
-    });
-}
 
-// Initial Mock Data insertion (Only runs if Firebase DB is empty on load)
-function initMockData() {
-    feederRef.set({
-        status: {
-            feedLevel: 18,
-            feedLevelStatus: "Low",
-            lastFeedingTime: "08:00 AM",
-            lastFeedingAmount: 250,
-            nextFeedingTime: "08:00 PM",
-            nextFeedingCountdown: "9h 36m"
-        },
-        schedule: {
-            s1: { day: "Mon", time: "8:00 AM", amount: 250 },
-            s2: { day: "Mon", time: "8:00 PM", amount: 250 },
-            s3: { day: "Tue", time: "8:00 AM", amount: 250 },
-            s4: { day: "Tue", time: "8:00 PM", amount: 250 }
-        },
-        logs: {
-            l1: { time: "10:00:00 AM", message: "250 g Completed", type: "success" },
-            l2: { time: "08:00:00 AM", message: "250 g Completed", type: "success" },
-            l3: { time: "07:59:50 AM", message: "Low Feed 18%", type: "warning" },
-            l4: { time: "Yesterday", message: "Schedule Updated", type: "info" }
-        },
-        control: {
-            dispense_now: false
-        }
+    // Convert to array and group by date
+    const logsArray = Object.keys(data).map(key => data[key]).reverse();
+    const grouped = {};
+
+    logsArray.forEach(log => {
+        // Assume log.timestamp represents ms or date string. If not, fallback to log.date or "Unknown Date"
+        const d = new Date(log.timestamp || Date.now()); 
+        const dateString = d.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        
+        if(!grouped[dateString]) grouped[dateString] = [];
+        grouped[dateString].push(log);
     });
+
+    for (let date in grouped) {
+        // Print Header for Day
+        if(fullLogsEl) fullLogsEl.innerHTML += `<div style="background:#f9f9f9; padding:8px; font-weight:bold; margin-top:10px; color:#555;">${date}</div>`;
+        
+        grouped[date].forEach(log => {
+            let iconClass = 'fas fa-check-circle completed';
+            if (log.type === 'warning') iconClass = 'fas fa-exclamation-triangle warning';
+            if (log.type === 'error') iconClass = 'fas fa-times-circle error';
+            
+            const timeStr = log.time || new Date(log.timestamp).toLocaleTimeString();
+            
+            const li = `<li style="display:flex; align-items:center; border-bottom:1px solid #eee; padding:10px;">
+                <i class="${iconClass} log-icon" style="margin-right:15px; color:${log.type==='warning'?'#F39C12':'#2EBA8A'}"></i>
+                <span class="log-time" style="width:100px; font-size:12px;">${timeStr}</span>
+                <span class="log-message" style="flex:1; color:#666;">${log.message}</span>
+            </li>`;
+            
+            // Add to both limited dashboard list and full logs list
+            if(logsListEl.children.length < 5) logsListEl.innerHTML += li; 
+            if(fullLogsEl) fullLogsEl.innerHTML += li;
+        });
+    }
 }

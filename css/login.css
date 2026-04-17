@@ -66,6 +66,7 @@ body {
     flex-direction: column;
 }
 
+.auth-box input[type="text"],
 .auth-box input[type="email"],
 .auth-box input[type="password"] {
     font-size: 17px;
@@ -76,6 +77,7 @@ body {
     outline: none;
 }
 
+.auth-box input[type="text"]:focus,
 .auth-box input[type="email"]:focus,
 .auth-box input[type="password"]:focus {
     border-color: #1877f2;

@@ -3,203 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fin & Feather Feeding System</title>
+    <title>Fin & Feather Feeding System - Log In or Sign Up</title>
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>Fin & Feather</h2>
-                <p>Feeding System</p>
+    <div class="login-container">
+        <!-- Left Branding Side -->
+        <div class="brand-section">
+            <h1 class="brand-title">Fin & Feather</h1>
+            <p class="brand-subtitle">Automate your farm's feeding system with precision, keeping your livestock healthy and connected.</p>
+        </div>
+
+        <!-- Right Form Side -->
+        <div class="form-section">
+            <!-- Login Form -->
+            <div class="auth-box" id="login-box">
+                <form id="login-form">
+                    <input type="email" id="login-email" placeholder="Email address" required>
+                    <input type="password" id="login-password" placeholder="Password" required>
+                    <button type="submit" class="btn-login">Log In</button>
+                </form>
+                <div class="forgot-password">
+                    <a href="#" id="show-forgot-link">Forgotten password?</a>
+                </div>
+                <div class="divider"></div>
+                <div class="create-account">
+                    <button type="button" class="btn-signup" id="show-signup-btn">Create new account</button>
+                </div>
             </div>
-            <nav class="sidebar-nav">
-                <ul>
-                    <li class="nav-item active" data-target="dashboard"><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
-                    <li class="nav-item" data-target="live-monitor"><a href="#"><i class="fas fa-desktop"></i> Live Monitor</a></li>
-                    <li class="nav-item" data-target="schedule"><a href="#"><i class="far fa-calendar-alt"></i> Schedule</a></li>
-                    <li class="nav-item" data-target="logs"><a href="#"><i class="fas fa-list-ul"></i> Logs</a></li>
-                    <li class="nav-item" data-target="inventory"><a href="#"><i class="fas fa-boxes"></i> Inventory</a></li>
-                    <li class="nav-item" data-target="settings"><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
-                </ul>
-            </nav>
-        </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <header class="top-header">
-                <div class="header-title">
-                    <h1 id="page-title">Admin Dashboard</h1>
+            <!-- Sign Up Form (Initially Hidden) -->
+            <div class="auth-box fade-in" id="signup-box" style="display: none;">
+                <div class="box-header">
+                    <h2>Sign Up</h2>
+                    <p>It's quick and easy.</p>
+                    <hr>
                 </div>
-                <div class="header-clock" id="live-clock-card">
-                    <div class="clock-label">Live System Clock</div>
-                    <div class="clock-time"><span id="clock-time">--:--:--</span> <span id="clock-ampm">--</span></div>
-                    <div class="clock-date" id="clock-date">Today • --, Week --</div>
-                </div>
-            </header>
+                <form id="signup-form">
+                    <input type="text" id="signup-device-id" placeholder="Device ID (from your Hardware Guide)" required>
+                    <input type="email" id="signup-email" placeholder="Email address" required>
+                    <input type="password" id="signup-password" placeholder="New password" required>
+                    <p class="terms-text">By clicking Sign Up, you agree to our Terms and Data Policy. The specified Device ID will be permanently tied to your account.</p>
+                    <button type="submit" class="btn-signup btn-wide">Sign Up</button>
+                    <div class="back-to-login">
+                        <a href="#" id="show-login-link-1">Already have an account?</a>
+                    </div>
+                </form>
+            </div>
 
-            <!-- Page Sections Container -->
-            <div id="pages-container">
-                <!-- Dashboard Section -->
-                <div id="section-dashboard" class="page-section active-section">
-
-            <!-- Status Cards -->
-            <section class="status-cards">
-                <div class="card feed-level-card">
-                    <div class="card-header">Feed Level</div>
-                    <div class="card-body">
-                        <div class="level-value"><span id="feed-percentage">--</span>%</div>
-                        <div class="level-status" id="feed-status-text">Loading...</div>
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" id="feed-progress-bar" style="width: 0%;"></div>
-                        </div>
-                    </div>
+            <!-- Forgot Password Form (Initially Hidden) -->
+            <div class="auth-box fade-in" id="forgot-box" style="display: none;">
+                <div class="box-header">
+                    <h2>Find Your Account</h2>
+                    <p>Please enter your email address to search for your account.</p>
+                    <hr>
                 </div>
-                <div class="card last-feeding-card">
-                    <div class="card-header">Last Feeding</div>
-                    <div class="card-body">
-                        <div class="time-value" id="last-feeding-time">--:-- --</div>
-                        <div class="info-text"><span id="last-feeding-amount">--</span> g dispensed</div>
+                <form id="forgot-form">
+                    <input type="email" id="forgot-email" placeholder="Email address" required>
+                    <div class="action-buttons">
+                        <button type="button" class="btn-cancel" id="show-login-link-2">Cancel</button>
+                        <button type="submit" class="btn-login">Search</button>
                     </div>
-                </div>
-                <div class="card next-feeding-card">
-                    <div class="card-header">Next Feeding</div>
-                    <div class="card-body">
-                        <div class="time-value" id="next-feeding-time">--:-- --</div>
-                        <div class="info-text">In <span id="next-feeding-countdown">--h --m</span></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Bottom Section (Schedule & Logs) -->
-            <section class="details-section">
-                <!-- Weekly Schedule -->
-                <div class="card schedule-card">
-                    <div class="card-header border-bottom">
-                        <h3>Weekly Schedule</h3>
-                    </div>
-                    <div class="card-body p-0">
-                        <ul class="schedule-list" id="schedule-list">
-                            <li><i class="far fa-calendar-check schedule-icon"></i> Loading schedule...</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Recent Logs -->
-                <div class="card logs-card">
-                    <div class="card-header border-bottom d-flex-between">
-                        <h3>Recent Logs</h3>
-                        <button class="btn-add" id="btn-manual-feed"><i class="fas fa-plus"></i> Feed Now</button>
-                    </div>
-                    <div class="card-body p-0">
-                        <ul class="logs-list" id="logs-list">
-                            <li>Loading logs...</li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
-                </div> <!-- End Dashboard Section -->
-
-                <!-- Live Monitor Section -->
-                <div id="section-live-monitor" class="page-section" style="display: none;">
-                    <div class="card">
-                        <div class="card-header border-bottom"><h3>Live Camera / Sensor Monitor</h3></div>
-                        <div class="card-body">
-                            <p style="text-align:center; padding:40px; color:#666;">
-                                <i class="fas fa-video fa-3x" style="margin-bottom:15px;"></i><br>
-                                Live Feed Placeholder.<br>Hardware module required for physical camera streaming.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Schedule Section -->
-                <div id="section-schedule" class="page-section" style="display: none;">
-                    <div class="card">
-                        <div class="card-header border-bottom d-flex-between">
-                            <h3>Manage Feeding Schedule</h3>
-                            <button class="btn-add"><i class="fas fa-plus"></i> Add New Time</button>
-                        </div>
-                        <div class="card-body">
-                            <p>Here you can set specific days and times for automatic dispensing.</p>
-                            <ul class="schedule-list" id="full-schedule-list">
-                                <!-- Will be hydrated by JS -->
-                                <li>Loading schedules...</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Logs Section -->
-                <div id="section-logs" class="page-section" style="display: none;">
-                    <div class="card">
-                        <div class="card-header border-bottom">
-                            <h3>Full Feeding System Logs</h3>
-                        </div>
-                        <div class="card-body">
-                            <ul class="logs-list" id="full-logs-list">
-                                <!-- Will be hydrated by JS -->
-                                <li>Loading historical logs...</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Inventory Section -->
-                <div id="section-inventory" class="page-section" style="display: none;">
-                    <div class="card">
-                        <div class="card-header border-bottom d-flex-between">
-                            <h3>Stock Inventory</h3>
-                            <button class="btn-add" style="background-color: var(--color-feed-level);"><i class="fas fa-sync"></i> Mark Refilled</button>
-                        </div>
-                        <div class="card-body">
-                            <p>Current Feed Available: <strong id="inv-level">--</strong></p>
-                            <p>Threshold for alert: <strong>20%</strong></p>
-                            <hr style="margin:20px 0; border:none; border-bottom:1px solid #eee;">
-                            <h4>Refill History</h4>
-                            <p style="color:#888; font-size:14px; margin-top:10px;">No recent manual refills logged.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Settings Section -->
-                <div id="section-settings" class="page-section" style="display: none;">
-                    <div class="card">
-                        <div class="card-header border-bottom"><h3>System Configuration</h3></div>
-                        <div class="card-body" style="display: flex; flex-direction: column; gap: 15px;">
-                            <div>
-                                <label style="display:block; font-weight:bold; margin-bottom:5px;">SMS Alerts Phone Number</label>
-                                <input type="text" placeholder="+1234567890" style="padding:10px; width:100%; max-width:300px; border:1px solid #ccc; border-radius:5px;">
-                            </div>
-                            <div>
-                                <label style="font-weight:bold; display:flex; align-items:center; gap:10px;">
-                                    <input type="checkbox" checked> Enable SMS Alerts
-                                </label>
-                            </div>
-                            <div>
-                                <label style="display:block; font-weight:bold; margin-bottom:5px;">Dispense Amount per feed (grams)</label>
-                                <input type="number" value="250" style="padding:10px; width:100%; max-width:300px; border:1px solid #ccc; border-radius:5px;">
-                            </div>
-                            <button class="btn-add" style="width:150px; margin-top:10px;">Save Settings</button>
-                        </div>
-                    </div>
-                </div>
-            </div> <!-- End Pages Container -->
-        </main>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     
     <!-- Custom Scripts -->
     <script src="js/firebase-config.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
 </body>
 </html>
