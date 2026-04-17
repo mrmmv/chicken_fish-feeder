@@ -163,6 +163,43 @@ function initializeRealtimeListeners() {
         const data = snapshot.val();
         renderLogsGrouped(data);
     });
+
+    // Settings
+    feederRef.child('settings').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if(data) {
+            if(document.getElementById('setting-phone')) {
+                document.getElementById('setting-phone').value = data.phoneNumber || '';
+                document.getElementById('setting-sms-enable').checked = data.smsEnabled !== false;
+                document.getElementById('setting-servo-open').value = data.servoOpenTime || '';
+                document.getElementById('setting-servo-closed').value = data.servoClosedTime || '';
+            }
+        }
+    });
+}
+
+// Settings Save Button
+const btnSaveSettings = document.getElementById('btn-save-settings');
+if(btnSaveSettings) {
+    btnSaveSettings.addEventListener('click', () => {
+        if (!feederRef) return alert("Device not connected yet.");
+        
+        const phone = document.getElementById('setting-phone').value.trim();
+        const smsEnabled = document.getElementById('setting-sms-enable').checked;
+        const servoOpen = parseInt(document.getElementById('setting-servo-open').value) || 0;
+        const servoClosed = parseInt(document.getElementById('setting-servo-closed').value) || 0;
+
+        feederRef.child('settings').update({
+            phoneNumber: phone,
+            smsEnabled: smsEnabled,
+            servoOpenTime: servoOpen,
+            servoClosedTime: servoClosed
+        }).then(() => {
+            alert('Settings saved successfully!');
+        }).catch(err => {
+            alert('Error saving settings: ' + err.message);
+        });
+    });
 }
 
 // Feed Now Button
@@ -273,17 +310,44 @@ function renderSchedule(data) {
         return;
     }
     
+    // Group by day
+    const grouped = {};
     for (const key in data) {
         const item = data[key];
-        const li = `<li style="display:flex; align-items:center; border-bottom:1px solid #eee; padding:15px 20px;">
-            <i class="far fa-calendar-check schedule-icon" style="color:#F39C12; margin-right:15px;"></i>
-            <span class="schedule-day" style="font-weight:bold; width:60px;">${item.day}</span>
-            <span class="schedule-time" style="flex:1;">${item.time}</span>
-            <span class="schedule-amount" style="font-weight:500;">${item.amount} g</span>
-        </li>`;
-        scheduleListEl.innerHTML += li;
-        if(fullListEl) fullListEl.innerHTML += li;
+        if(!grouped[item.day]) grouped[item.day] = [];
+        grouped[item.day].push(item);
     }
+    
+    const dayOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    
+    dayOrder.forEach(day => {
+        if (grouped[day] && grouped[day].length > 0) {
+            // Sort by rawTime
+            grouped[day].sort((a,b) => (a.rawTime || '').localeCompare(b.rawTime || ''));
+            
+            // Build horizontally aligned time blocks
+            let timesHTML = '';
+            grouped[day].forEach(item => {
+                timesHTML += `<span style="background:var(--color-bg); padding:6px 10px; border-radius:6px; font-size:13px; font-weight:500; border:1px solid #e1e4e8; display:inline-flex; align-items:center; gap:5px;">
+                    <i class="far fa-clock" style="color:#666;"></i> ${item.time} 
+                    <span style="color:#888; font-size:11px;">(${item.amount}g)</span>
+                </span>`;
+            });
+            
+            const li = `<li style="display:flex; align-items:flex-start; border-bottom:1px solid #eee; padding:15px 20px;">
+                <div style="display:flex; align-items:center; width:80px; margin-top:6px;">
+                    <i class="far fa-calendar-check schedule-icon" style="color:#F39C12; margin-right:10px;"></i>
+                    <span class="schedule-day" style="font-weight:bold;">${day}</span>
+                </div>
+                <div class="schedule-times" style="flex:1; display:flex; flex-wrap:wrap; gap:10px;">
+                    ${timesHTML}
+                </div>
+            </li>`;
+            
+            scheduleListEl.innerHTML += li;
+            if(fullListEl) fullListEl.innerHTML += li;
+        }
+    });
 }
 
 function renderLogsGrouped(data) {

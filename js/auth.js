@@ -47,6 +47,32 @@ showLoginLink2.addEventListener('click', (e) => {
 
 let isAuthAction = false; // Flag to prevent premature redirects during signup/login
 
+function getFriendlyErrorMessage(error) {
+    if (!error.code) return error.message; // Fallback if no code
+
+    switch (error.code) {
+        case 'auth/wrong-password':
+            return "Incorrect password. Please try again.";
+        case 'auth/user-not-found':
+            return "No account found with this email address.";
+        case 'auth/invalid-login-credentials':
+        case 'auth/invalid-credential':
+            return "Invalid email or password. Please try again.";
+        case 'auth/invalid-email':
+            return "Please enter a valid email address.";
+        case 'auth/email-already-in-use':
+            return "An account with this email already exists.";
+        case 'auth/weak-password':
+            return "Your password is too weak. Please use at least 6 characters.";
+        case 'auth/too-many-requests':
+            return "Too many unsuccessful attempts. Please try again later.";
+        case 'auth/network-request-failed':
+            return "Network error. Please check your internet connection.";
+        default:
+            return "An error occurred: " + error.message;
+    }
+}
+
 // 1. Log In
 document.getElementById('login-form').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -61,7 +87,7 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
         })
         .catch((error) => {
             isAuthAction = false;
-            alert("Error: " + error.message);
+            alert(getFriendlyErrorMessage(error));
         });
 });
 
@@ -102,7 +128,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
 
     } catch (error) {
         isAuthAction = false;
-        alert("Error: " + error.message);
+        alert(getFriendlyErrorMessage(error));
     }
 });
 
@@ -118,7 +144,7 @@ document.getElementById('forgot-form').addEventListener('submit', (e) => {
             loginBox.style.display = 'block';
         })
         .catch((error) => {
-            alert("Error: " + error.message);
+            alert(getFriendlyErrorMessage(error));
         });
 });
 
