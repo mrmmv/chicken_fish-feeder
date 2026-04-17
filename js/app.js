@@ -155,34 +155,64 @@ document.getElementById('btn-logout').addEventListener('click', () => {
     });
 });
 
+// Dynamic Schedule Form - Adding time inputs based on dropdown
+const timesCountSelect = document.getElementById('schedule-times-count');
+const dynamicTimeInputsContainer = document.getElementById('dynamic-time-inputs');
+
+if(timesCountSelect) {
+    timesCountSelect.addEventListener('change', (e) => {
+        const count = parseInt(e.target.value);
+        dynamicTimeInputsContainer.innerHTML = '';
+        
+        for(let i = 1; i <= count; i++) {
+            dynamicTimeInputsContainer.innerHTML += `
+                <div>
+                    <label style="display:inline-block; width: 60px;">Time ${i}:</label>
+                    <input type="time" class="schedule-time-input" required style="padding:8px; border:1px solid #ccc; border-radius:4px;">
+                </div>
+            `;
+        }
+    });
+}
+
 // Handle New Schedule Submission
 document.getElementById('schedule-form').addEventListener('submit', (e) => {
     e.preventDefault();
     if(!feederRef) return alert("Device not connected yet.");
 
     const checkboxes = document.querySelectorAll('input[name="days"]:checked');
-    const time = document.getElementById('schedule-time').value;
+    const timeInputs = document.querySelectorAll('.schedule-time-input');
     const amount = document.getElementById('schedule-amount').value;
 
     if(checkboxes.length === 0) return alert("Please select at least one day.");
+    if(timeInputs.length === 0) return;
     
-    // Format time to 12-hour AM/PM for display
-    let [h, m] = time.split(':');
-    let ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-    const formattedTime = `${h}:${m} ${ampm}`;
-
     checkboxes.forEach(cb => {
-        feederRef.child('schedule').push({
-            day: cb.value,
-            time: formattedTime,
-            rawTime: time,
-            amount: parseInt(amount)
+        timeInputs.forEach(timeInput => {
+            const time = timeInput.value;
+            if(!time) return;
+
+            // Format time to 12-hour AM/PM for display
+            let [h, m] = time.split(':');
+            let ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            const formattedTime = `${h}:${m} ${ampm}`;
+
+            feederRef.child('schedule').push({
+                day: cb.value,
+                time: formattedTime,
+                rawTime: time,
+                amount: parseInt(amount)
+            });
         });
     });
 
-    alert("Schedule added!");
-    e.target.reset(); // Reset form
+    alert("Schedules successfully added!");
+    
+    // Reset form and reset dynamic inputs back to 1
+    e.target.reset();
+    timesCountSelect.value = "1";
+    timesCountSelect.dispatchEvent(new Event('change'));
 });
 
 // Helper Functions
@@ -221,11 +251,11 @@ function renderSchedule(data) {
     
     for (const key in data) {
         const item = data[key];
-        const li = `<li style="display:flex; align-items:center; border-bottom:1px solid #eee; padding:10px 0;">
+        const li = `<li style="display:flex; align-items:center; border-bottom:1px solid #eee; padding:15px 20px;">
             <i class="far fa-calendar-check schedule-icon" style="color:#F39C12; margin-right:15px;"></i>
             <span class="schedule-day" style="font-weight:bold; width:60px;">${item.day}</span>
             <span class="schedule-time" style="flex:1;">${item.time}</span>
-            <span class="schedule-amount">${item.amount} g</span>
+            <span class="schedule-amount" style="font-weight:500;">${item.amount} g</span>
         </li>`;
         scheduleListEl.innerHTML += li;
         if(fullListEl) fullListEl.innerHTML += li;

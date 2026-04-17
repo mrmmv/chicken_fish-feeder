@@ -127,8 +127,20 @@
                                     </div>
                                 </div>
                                 <div style="margin-bottom: 15px;">
-                                    <label style="font-weight:bold; display:block; margin-bottom:5px;">Time to feed:</label>
-                                    <input type="time" id="schedule-time" required style="padding:8px; border:1px solid #ccc; border-radius:4px;">
+                                    <label style="font-weight:bold; display:block; margin-bottom:5px;">How many times to feed (per selected day)?</label>
+                                    <select id="schedule-times-count" style="padding:8px; border:1px solid #ccc; border-radius:4px; width:100%; max-width:200px;">
+                                        <option value="1" selected>1 Time</option>
+                                        <option value="2">2 Times</option>
+                                        <option value="3">3 Times</option>
+                                        <option value="4">4 Times</option>
+                                        <option value="5">5 Times</option>
+                                    </select>
+                                </div>
+                                <div id="dynamic-time-inputs" style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px;">
+                                    <div>
+                                        <label style="display:inline-block; width: 60px;">Time 1:</label>
+                                        <input type="time" class="schedule-time-input" required style="padding:8px; border:1px solid #ccc; border-radius:4px;">
+                                    </div>
                                 </div>
                                 <div style="margin-bottom: 15px;">
                                     <label style="font-weight:bold; display:block; margin-bottom:5px;">Amount (grams):</label>
