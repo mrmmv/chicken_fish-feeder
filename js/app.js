@@ -224,6 +224,24 @@ btnFeedNow.addEventListener('click', () => {
     alert('Dispense command sent to device!');
 });
 
+// Mark Refilled Button
+const btnMarkRefilled = document.getElementById('btn-mark-refilled');
+if (btnMarkRefilled) {
+    btnMarkRefilled.addEventListener('click', () => {
+        if (!feederRef) return alert("Device not connected yet.");
+        if (confirm("Are you sure you want to mark the hopper as refilled?")) {
+            // Push a refill log
+            feederRef.child('logs').push({
+                message: "Stock manually marked as refilled",
+                type: "success",
+                isRefill: true,
+                timestamp: Date.now()
+            });
+            alert("Inventory marked as refilled!");
+        }
+    });
+}
+
 // Logout Button
 document.getElementById('btn-logout').addEventListener('click', () => {
     auth.signOut().then(() => {
@@ -296,6 +314,9 @@ function updateStatusCards(data) {
     const level = data.feedLevel || 0;
     feedPercentageEl.textContent = level;
     feedProgressBar.style.width = `${level}%`;
+    
+    const invLevelEl = document.getElementById('inv-level');
+    if (invLevelEl) invLevelEl.textContent = level + '%';
     
     if (level <= 20) {
         feedStatusText.textContent = 'Low';
@@ -442,11 +463,15 @@ function computeNextFeeding(schedules) {
 function renderLogsGrouped(data) {
     logsListEl.innerHTML = '';
     const fullLogsEl = document.getElementById('full-logs-list');
+    const refillListEl = document.getElementById('refill-history-list');
+
     if(fullLogsEl) fullLogsEl.innerHTML = '';
+    if(refillListEl) refillListEl.innerHTML = '';
 
     if (!data) {
         logsListEl.innerHTML = '<li>No recent logs.</li>';
         if(fullLogsEl) fullLogsEl.innerHTML = '<li>No recent logs.</li>';
+        if(refillListEl) refillListEl.innerHTML = '<li style="color:#888; font-size:14px;">No recent manual refills logged.</li>';
         return;
     }
 
@@ -462,6 +487,8 @@ function renderLogsGrouped(data) {
         if(!grouped[dateString]) grouped[dateString] = [];
         grouped[dateString].push(log);
     });
+
+    let refillCount = 0;
 
     for (let date in grouped) {
         // Print Header for Day
@@ -483,6 +510,16 @@ function renderLogsGrouped(data) {
             // Add to both limited dashboard list and full logs list
             if(logsListEl.children.length < 5) logsListEl.innerHTML += li; 
             if(fullLogsEl) fullLogsEl.innerHTML += li;
+
+            // Handle Refill history
+            if(log.isRefill || log.message.toLowerCase().includes('refill')) {
+                if(refillListEl) refillListEl.innerHTML += li;
+                refillCount++;
+            }
         });
+    }
+
+    if (refillCount === 0 && refillListEl) {
+        refillListEl.innerHTML = '<li style="color:#888; font-size:14px;">No recent manual refills logged.</li>';
     }
 }

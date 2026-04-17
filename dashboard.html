@@ -184,14 +184,16 @@
                     <div class="card">
                         <div class="card-header border-bottom d-flex-between">
                             <h3>Stock Inventory</h3>
-                            <button class="btn-add" style="background-color: var(--color-feed-level);"><i class="fas fa-sync"></i> Mark Refilled</button>
+                            <button id="btn-mark-refilled" class="btn-add" style="background-color: var(--color-feed-level);"><i class="fas fa-sync"></i> Mark Refilled</button>
                         </div>
                         <div class="card-body">
                             <p>Current Feed Available: <strong id="inv-level">--</strong></p>
                             <p>Threshold for alert: <strong>20%</strong></p>
                             <hr style="margin:20px 0; border:none; border-bottom:1px solid #eee;">
                             <h4>Refill History</h4>
-                            <p style="color:#888; font-size:14px; margin-top:10px;">No recent manual refills logged.</p>
+                            <ul class="logs-list" id="refill-history-list" style="margin-top:10px;">
+                                <li style="color:#888; font-size:14px;">Loading refill history...</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
