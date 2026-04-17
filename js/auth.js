@@ -45,9 +45,12 @@ showLoginLink2.addEventListener('click', (e) => {
 
 // Firebase Authentication Logic
 
+let isAuthAction = false; // Flag to prevent premature redirects during signup/login
+
 // 1. Log In
 document.getElementById('login-form').addEventListener('submit', (e) => {
     e.preventDefault();
+    isAuthAction = true;
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
 
@@ -57,6 +60,7 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
             window.location.href = 'dashboard.html'; 
         })
         .catch((error) => {
+            isAuthAction = false;
             alert("Error: " + error.message);
         });
 });
@@ -64,6 +68,7 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
 // 2. Sign Up
 document.getElementById('signup-form').addEventListener('submit', async (e) => {
     e.preventDefault();
+    
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
     const deviceId = document.getElementById('signup-device-id').value.trim();
@@ -73,6 +78,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
         return;
     }
 
+    isAuthAction = true;
     try {
         // Check if device is already registered
         const deviceRef = firebase.database().ref('devices/' + deviceId);
@@ -95,6 +101,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
         window.location.href = 'dashboard.html'; 
 
     } catch (error) {
+        isAuthAction = false;
         alert("Error: " + error.message);
     }
 });
@@ -117,8 +124,8 @@ document.getElementById('forgot-form').addEventListener('submit', (e) => {
 
 // Check if user is already logged in
 auth.onAuthStateChanged((user) => {
-    if (user && window.location.pathname.includes('index.html')) {
-        // User is signed in, automatically redirect to dashboard
+    // Only redirect automatically if user is logged in, on index.html, and not currently submitting a form
+    if (user && window.location.pathname.includes('index.html') && !isAuthAction) {
         window.location.href = 'dashboard.html';
     }
 });
