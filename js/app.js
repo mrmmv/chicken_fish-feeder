@@ -375,7 +375,7 @@ function computeNextFeeding(schedules) {
     if (!schedules) {
         window.nextFeedingDate = null;
         document.getElementById('next-feeding-time').textContent = '--:-- --';
-        document.getElementById('next-feeding-countdown').textContent = '--h --m';
+        document.getElementById('next-feeding-countdown').textContent = 'In --h --m';
         return;
     }
     
