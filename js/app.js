@@ -47,6 +47,20 @@ function updateClock() {
     const weekOfMonth = Math.ceil((date - 1 - now.getDay()) / 7) + 1;
     
     dateEl.textContent = `Today • ${dayName}, Week ${weekOfMonth}`;
+
+    // Calculate dynamic next feeding countdown
+    if (window.nextFeedingDate) {
+        let diffMs = window.nextFeedingDate - now;
+        if (diffMs > 0) {
+            let diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+            let diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            let diffSecs = Math.floor((diffMs % (1000 * 60)) / 1000);
+            document.getElementById('next-feeding-countdown').textContent = `In ${diffHrs}h ${diffMins}m ${diffSecs}s`;
+        } else {
+            // Re-calculate or fallback
+            document.getElementById('next-feeding-countdown').textContent = `Dispensing soon...`;
+        }
+    }
 }
 
 setInterval(updateClock, 1000);
@@ -156,6 +170,7 @@ function initializeRealtimeListeners() {
     feederRef.child('schedule').on('value', (snapshot) => {
         const data = snapshot.val();
         renderSchedule(data);
+        computeNextFeeding(data);
     });
 
     // Logs (grouped by day)
@@ -293,9 +308,15 @@ function updateStatusCards(data) {
     }
     
     lastFeedingTimeEl.textContent = data.lastFeedingTime || '--:-- --';
-    lastFeedingAmountEl.textContent = data.lastFeedingAmount || '--';
-    nextFeedingTimeEl.textContent = data.nextFeedingTime || '--:-- --';
-    nextFeedingCountdownEl.textContent = data.nextFeedingCountdown || '--h --m';
+    
+    if (data.lastFeedingAmount) {
+        lastFeedingAmountEl.textContent = data.lastFeedingAmount + " dispensed";
+    } else if (data.lastFeedingTime) {
+        lastFeedingAmountEl.textContent = "Feed cycle completed";
+    } else {
+        lastFeedingAmountEl.textContent = "--";
+    }
+    // next feeding logic is decoupled
 }
 
 function renderSchedule(data) {
@@ -348,6 +369,74 @@ function renderSchedule(data) {
             if(fullListEl) fullListEl.innerHTML += li;
         }
     });
+}
+
+function computeNextFeeding(schedules) {
+    if (!schedules) {
+        window.nextFeedingDate = null;
+        document.getElementById('next-feeding-time').textContent = '--:-- --';
+        document.getElementById('next-feeding-countdown').textContent = '--h --m';
+        return;
+    }
+    
+    const now = new Date();
+    const currentDayIdx = now.getDay() === 0 ? 6 : now.getDay() - 1; // 0=Mon, 6=Sun
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    
+    let nextDate = null;
+    
+    for (const key in schedules) {
+        let {day, rawTime} = schedules[key];
+        if (!day || !rawTime) continue;
+        
+        let [h, m] = rawTime.split(':').map(Number);
+        let targetDayIdx = dayNames.indexOf(day);
+        if(targetDayIdx === -1) continue;
+        
+        let targetDate = new Date(now);
+        targetDate.setHours(h, m, 0, 0);
+        
+        let dayDiff = targetDayIdx - currentDayIdx;
+        
+        if (dayDiff < 0 || (dayDiff === 0 && targetDate <= now)) {
+            // The schedule time for this day has already passed, meaning it corresponds to next week
+            dayDiff += 7;
+        }
+        
+        targetDate.setDate(targetDate.getDate() + dayDiff);
+        
+        if (!nextDate || targetDate < nextDate) {
+            nextDate = targetDate;
+        }
+    }
+    
+    window.nextFeedingDate = nextDate;
+    
+    if (nextDate) {
+        // Format time
+        let h = nextDate.getHours();
+        let m = nextDate.getMinutes();
+        let ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        m = m < 10 ? '0'+m : m;
+        
+        let timeStr = `${h}:${m} ${ampm}`;
+        let dayStr = dayNames[nextDate.getDay() === 0 ? 6 : nextDate.getDay() - 1];
+        if (nextDate.getDate() === now.getDate() && nextDate.getMonth() === now.getMonth()) {
+            dayStr = "Today";
+        } else {
+            // Check if tomorrow
+            let tmrw = new Date(now);
+            tmrw.setDate(tmrw.getDate() + 1);
+            if (nextDate.getDate() === tmrw.getDate() && nextDate.getMonth() === tmrw.getMonth()) {
+                dayStr = "Tomorrow";
+            }
+        }
+        
+        document.getElementById('next-feeding-time').textContent = `${dayStr}, ${timeStr}`;
+    } else {
+        document.getElementById('next-feeding-time').textContent = '--:-- --';
+    }
 }
 
 function renderLogsGrouped(data) {
