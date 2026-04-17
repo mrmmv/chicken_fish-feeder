@@ -116,6 +116,7 @@ auth.onAuthStateChanged(async (user) => {
         
         // Start listening to this device's node
         initializeRealtimeListeners();
+    } else {
         // Attempt recovery if device is missing
         let manualDevice = prompt("No device linked! This sometimes happens due to an interrupted signup. Please enter your Device ID to link it now:");
         if (manualDevice) {
