@@ -213,6 +213,7 @@ function initializeRealtimeListeners() {
                 document.getElementById('setting-sms-enable').checked = data.smsEnabled !== false;
                 document.getElementById('setting-servo-open').value = data.servoOpenTime || '';
                 document.getElementById('setting-servo-closed').value = data.servoClosedTime || '';
+                document.getElementById('setting-hopper-height').value = data.hopperHeight || '';
             }
         }
     });
@@ -228,12 +229,18 @@ if(btnSaveSettings) {
         const smsEnabled = document.getElementById('setting-sms-enable').checked;
         const servoOpen = parseInt(document.getElementById('setting-servo-open').value) || 0;
         const servoClosed = parseInt(document.getElementById('setting-servo-closed').value) || 0;
+        const hopperHeight = parseInt(document.getElementById('setting-hopper-height').value) || 0;
+
+        if (hopperHeight > 0 && hopperHeight < 5) {
+            return alert('Hopper height must be at least 5 cm.');
+        }
 
         feederRef.child('settings').update({
             phoneNumber: phone,
             smsEnabled: smsEnabled,
             servoOpenTime: servoOpen,
-            servoClosedTime: servoClosed
+            servoClosedTime: servoClosed,
+            hopperHeight: hopperHeight || null
         }).then(() => {
             alert('Settings saved successfully!');
         }).catch(err => {
